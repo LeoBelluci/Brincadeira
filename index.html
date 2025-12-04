@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quer ganhar um açaí?</title>
+  <style>
+    :root{
+      --bg1:#7b2ff7;
+      --bg2:#f107a3;
+      --card:#ffffffcc;
+      --text:#1b1b1f;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Ubuntu, Arial, "Noto Sans", sans-serif;
+      color: var(--text);
+    }
+    body {
+      background: linear-gradient(135deg, var(--bg1), var(--bg2));
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      user-select: none;
+    }
+    .card {
+      position: relative;
+      width: min(720px, 100%);
+      min-height: 68vh;
+      background: var(--card);
+      backdrop-filter: blur(6px);
+      border-radius: 24px;
+      box-shadow: 0 10px 30px #00000033;
+      overflow: hidden;
+      padding: clamp(20px, 4vw, 40px);
+    }
+    h1 {
+      margin: 0 0 8px 0;
+      font-size: clamp(28px, 5vw, 44px);
+    }
+    p.lead {
+      margin: 0 0 24px;
+      font-size: clamp(16px, 2.6vw, 20px);
+      opacity: .85;
+    }
+    .playground {
+      position: relative;
+      height: clamp(360px, 50vh, 520px);
+      border-radius: 18px;
+      background: #ffffffea;
+      outline: 2px dashed #00000010;
+      outline-offset: -8px;
+      overflow: hidden;
+    }
+    .cta {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      translate: -50% -50%;
+      padding: 14px 22px;
+      font-size: clamp(16px, 2.8vw, 20px);
+      border: 0;
+      border-radius: 999px;
+      cursor: pointer;
+      background: #111;
+      color: #fff;
+      box-shadow: 0 10px 20px #0000002e, inset 0 -2px 0 #00000050;
+      transition: transform .15s ease;
+      touch-action: none;
+      white-space: nowrap;
+    }
+    .cta:active { transform: scale(.98); }
+    .cta.disabled { cursor: default; }
+    .toast {
+      position: absolute;
+      left: 50%;
+      top: 18px;
+      translate: -50% 0;
+      background: #111;
+      color: #fff;
+      padding: 8px 14px;
+      font-size: 14px;
+      border-radius: 999px;
+      opacity: 0;
+      transform: translateY(-8px);
+      transition: opacity .2s ease, transform .2s ease;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .confetti {
+      position:absolute; inset:0; pointer-events:none;
+    }
+    @keyframes pop {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.06); }
+      100% { transform: scale(1); }
+    }
+    .celebrate { animation: pop .8s ease; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Quer ganhar um açaí? 🍧</h1>
+    <p class="lead">Clique no botão 😇</p>
+
+    <section class="playground" id="playground">
+      <button id="cta" class="cta disabled" aria-disabled="true">
+        Clique aqui
+      </button>
+      <div id="toast" class="toast"></div>
+      <canvas id="confetti" class="confetti"></canvas>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const maxTries = 20; // 🔹 Agora são 20 tentativas
+      const whatsappNumber = "5544991694910";
+      const message = "Oi amor! Consegui meu açaí 😄";
+      const waUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+
+      const btn = document.getElementById("cta");
+      const box = document.getElementById("playground");
+      const toast = document.getElementById("toast");
+      const confettiCanvas = document.getElementById("confetti");
+      const ctx = confettiCanvas.getContext("2d");
+
+      let tries = 0;
+      let armed = true;
+      let fleeing = false;
+
+      function sizeCanvas() {
+        confettiCanvas.width = box.clientWidth;
+        confettiCanvas.height = box.clientHeight;
+      }
+      new ResizeObserver(sizeCanvas).observe(box);
+      sizeCanvas();
+
+      function showToast(text) {
+        toast.textContent = text;
+        toast.classList.add("show");
+        setTimeout(() => toast.classList.remove("show"), 900);
+      }
+
+      function randomPositionFor(el) {
+        const br = box.getBoundingClientRect();
+        const er = el.getBoundingClientRect();
+        const pad = 12;
+        const maxLeft = br.width - er.width - pad;
+        const maxTop = br.height - er.height - pad;
+        const left = Math.max(pad, Math.random() * maxLeft);
+        const top = Math.max(pad, Math.random() * maxTop);
+        return { left, top };
+      }
+
+      function moveButton() {
+        const { left, top } = randomPositionFor(btn);
+        btn.style.left = left + "px";
+        btn.style.top = top + "px";
+        btn.style.translate = "0 0";
+      }
+
+      function tryToFlee(ev) {
+        if (!armed) return;
+        ev?.preventDefault?.();
+        ev?.stopPropagation?.();
+
+        if (fleeing) return;
+        fleeing = true;
+
+        tries++;
+
+        const frases = [
+          "Ops! Quase…",
+          "Eita, escapou 👀",
+          "Hahaha, de novo!",
+          "Tá chegando…",
+          "Foi por pouco!",
+          "Uuuui! Quase clicou!",
+          "Não desiste!",
+          "Mais perto!",
+          "Vai dar certo!",
+          "Ok, agora vai!",
+          "Tenta de novo 😅",
+          "Você consegue!",
+          "Açaí te espera 🍧",
+          "Mais um pouquinho!",
+          "Haha, difícil né?",
+          "Agora sim?",
+          "Ainda não 😜",
+          "Tenta mais!",
+          "Quase!",
+          "Agora vai!"
+        ];
+        showToast(frases[Math.min(tries - 1, frases.length - 1)]);
+
+        if (tries >= maxTries) {
+          armed = false;
+          btn.classList.remove("disabled");
+          btn.removeAttribute("aria-disabled");
+          btn.textContent = "Agora vai! Me dar o açaí 😄";
+          btn.style.left = "50%";
+          btn.style.top = "50%";
+          btn.style.translate = "-50% -50%";
+          celebrate();
+        } else {
+          moveButton();
+        }
+
+        setTimeout(() => (fleeing = false), 140);
+      }
+
+      function celebrate() {
+        btn.classList.add("celebrate");
+        burstConfetti();
+        setTimeout(() => btn.classList.remove("celebrate"), 900);
+      }
+
+      function burstConfetti() {
+        const pieces = 90;
+        const parts = [];
+        for (let i = 0; i < pieces; i++) {
+          parts.push({
+            x: confettiCanvas.width / 2,
+            y: confettiCanvas.height / 2,
+            vx: (Math.random() - 0.5) * 6,
+            vy: (Math.random() * -4) - 2,
+            g: 0.16 + Math.random() * 0.06,
+            size: 2 + Math.random() * 4,
+            life: 60 + Math.random() * 30
+          });
+        }
+        let frame = 0;
+        (function tick() {
+          frame++;
+          ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+          parts.forEach(p => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += p.g;
+            p.life--;
+            ctx.globalAlpha = Math.max(0, p.life / 90);
+            ctx.fillRect(p.x, p.y, p.size, p.size);
+          });
+          ctx.globalAlpha = 1;
+          if (frame < 120) requestAnimationFrame(tick);
+        })();
+      }
+
+      btn.addEventListener("pointerenter", tryToFlee);
+      btn.addEventListener("pointerdown", tryToFlee);
+      btn.addEventListener("touchstart", tryToFlee, { passive: false });
+      box.addEventListener("mousemove", (e) => {
+        if (!armed) return;
+        const br = btn.getBoundingClientRect();
+        const hoverMargin = 48;
+        if (
+          e.clientX > br.left - hoverMargin &&
+          e.clientX < br.right + hoverMargin &&
+          e.clientY > br.top - hoverMargin &&
+          e.clientY < br.bottom + hoverMargin
+        ) {
+          tryToFlee(e);
+        }
+      });
+
+      btn.addEventListener("click", (e) => {
+        if (armed) {
+          e.preventDefault();
+          e.stopPropagation();
+          tryToFlee(e);
+          return false;
+        } else {
+          window.location.href = waUrl;
+        }
+      });
+
+      moveButton();
+      window.addEventListener("resize", () => {
+        if (armed) moveButton();
+      });
+    })();
+  </script>
+</body>
+</html>
